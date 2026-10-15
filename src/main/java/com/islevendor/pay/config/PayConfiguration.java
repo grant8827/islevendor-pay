@@ -9,8 +9,10 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
+@EnableScheduling
 @EnableConfigurationProperties(PayProperties.class)
 public class PayConfiguration {
 
@@ -38,7 +40,7 @@ public class PayConfiguration {
         public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
             PayProperties props = Binder.get(environment)
                     .bind("islevendor.pay", PayProperties.class)
-                    .orElseGet(() -> new PayProperties(false, "", "", false, null));
+                    .orElseGet(() -> new PayProperties(false, "", "", false, null, null, null, null));
             StartupSafetyChecks.verify(props, environment.getProperty("spring.datasource.url"));
         }
     }

@@ -119,9 +119,10 @@ class SecurityAndSchemaTest extends PayIntegrationTest {
     void internalEndpointsNeedTheServiceTokenAndAreOffByDefault() throws Exception {
         String key = "checkout-" + UUID.randomUUID();
         String request = """
-                {"idempotencyKey":"%s","gateway":"WIPAY","customerUserId":"%s",
-                 "orderIds":["%s"],"amount":"1500.00","currency":"JMD"}
-                """.formatted(key, UUID.randomUUID(), UUID.randomUUID());
+                {"idempotencyKey":"%s","marketplacePaymentId":"%s","gateway":"WIPAY","customerUserId":"%s",
+                 "orderIds":["%s"],"amount":"1500.00","currency":"JMD","feeStructure":"merchant_absorb",
+                 "customer":{"email":"c@example.com","name":"Customer"}}
+                """.formatted(key, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
 
         mvc.perform(post("/internal/v1/payment-intents").contentType(MediaType.APPLICATION_JSON).content(request))
                 .andExpect(status().isUnauthorized());

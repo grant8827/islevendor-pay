@@ -17,7 +17,9 @@ class SafetyRulesTest {
     private static final String TOKEN = "x".repeat(32);
 
     private static PayProperties props(boolean enabled, String serviceToken, boolean remoteOk, String env, boolean live) {
-        return new PayProperties(enabled, "jwt-secret", serviceToken, remoteOk, new PayProperties.WiPay(env, live));
+        return new PayProperties(enabled, "jwt-secret", serviceToken, remoteOk,
+                "https://pay.islevendor.com", "https://islevendor.com", "http://backend.railway.internal:4000",
+                new PayProperties.WiPay(env, live, "acct", "key", null, null, null));
     }
 
     @Test
@@ -55,8 +57,44 @@ class SafetyRulesTest {
 
     @Test
     void requiresTheMarketplaceJwtSecret() {
-        var noSecret = new PayProperties(false, "", "", false, new PayProperties.WiPay("sandbox", false));
+        var noSecret = new PayProperties(false, "", "", false, null, null, null, null);
         assertThatThrownBy(() -> StartupSafetyChecks.verify(noSecret, LOCAL_DB)).hasMessageContaining("JWT_SECRET");
+    }
+
+    @Test
+    void switchedOnNeedsHttpsAddressesForCustomersAndTheMarketplace() {
+        var noUrls = new PayProperties(true, "jwt", TOKEN, false, null, null, null, null);
+        assertThatThrownBy(() -> StartupSafetyChecks.verify(noUrls, LOCAL_DB))
+                .hasMessageContaining("ISLEVENDOR_PAY_PUBLIC_URL")
+                .hasMessageContaining("PUBLIC_WEB_URL")
+                .hasMessageContaining("MARKETPLACE_INTERNAL_URL");
+        var plainHttp = new PayProperties(true, "jwt", TOKEN, false, "http://pay.islevendor.com",
+                "https://islevendor.com", "http://backend:4000", null);
+        assertThatThrownBy(() -> StartupSafetyChecks.verify(plainHttp, LOCAL_DB))
+                .hasMessageContaining("ISLEVENDOR_PAY_PUBLIC_URL");
+        var local = new PayProperties(true, "jwt", TOKEN, false, "http://localhost:8081",
+                "http://localhost:5173", "http://127.0.0.1:4000", null);
+        assertThatCode(() -> StartupSafetyChecks.verify(local, LOCAL_DB)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void liveNeedsRealCredentialsAndTheTestGatewayMustBeLocal() {
+        var liveNoKeys = new PayProperties(false, "jwt", "", false, null, null, null,
+                new PayProperties.WiPay("live", true, null, null, null, null, null));
+        assertThatThrownBy(() -> StartupSafetyChecks.verify(liveNoKeys, LOCAL_DB))
+                .hasMessageContaining("WIPAY_ACCOUNT_NUMBER");
+        // The sandbox's published test account is never used for live.
+        assertThat(liveNoKeys.wipay().effectiveApiKey()).isEmpty();
+
+        var remoteFake = new PayProperties(false, "jwt", "", false, null, null, null,
+                new PayProperties.WiPay("sandbox", false, null, null, null, null, "https://evil.example.com"));
+        assertThatThrownBy(() -> StartupSafetyChecks.verify(remoteFake, LOCAL_DB))
+                .hasMessageContaining("test-base-url");
+
+        var badOrigin = new PayProperties(false, "jwt", "", false, null, null, null,
+                new PayProperties.WiPay("sandbox", false, null, null, null, "Isle Vendor!", null));
+        assertThatThrownBy(() -> StartupSafetyChecks.verify(badOrigin, LOCAL_DB))
+                .hasMessageContaining("WIPAY_ORIGIN");
     }
 
     @Test

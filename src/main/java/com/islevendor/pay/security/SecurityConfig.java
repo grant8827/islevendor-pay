@@ -4,6 +4,7 @@ import com.islevendor.pay.config.PayProperties;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -44,6 +45,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers("/error").permitAll()
+                        // WiPay can't log in: these verify WiPay's hash or signature themselves.
+                        .requestMatchers(HttpMethod.GET, "/gateway/wipay/return").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/gateway/wipay/webhooks/payments").permitAll()
                         .requestMatchers("/internal/**").hasRole("SERVICE")
                         .requestMatchers("/api/pay/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/pay/**").authenticated()

@@ -30,6 +30,9 @@ Java reports only `configured: true/false` for each (built: `GET /api/pay/admin/
 
 - The dashboard shows these **read-only** for copying into WiPay's developer dashboard. They are built from the service's own configured base URL, never from admin input.
 - Until Java owns checkout, Node's existing URLs stay registered with WiPay (`/api/webhooks/wipay`, `/api/ledger/webhooks/wipay-payouts`).
+- **Switching the Payments webhook.** If WiPay allows only one Payments webhook address per account, move it to Java's address when switching `PAYMENTS_PROVIDER` to `islevendor-pay`.
+  - Node ignores notifications for payments it doesn't own, and Java does the same.
+  - Customer returns are unaffected: each payment carries its own `response_url`.
 
 ## Payment flow (Phase 2, sandbox first)
 

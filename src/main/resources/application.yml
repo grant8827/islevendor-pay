@@ -49,7 +49,20 @@ islevendor:
     service-token: ${ISLEVENDOR_PAY_SERVICE_TOKEN:}
     # Refuse a non-local database unless this is deliberately set.
     allow-remote-database: ${ISLEVENDOR_PAY_ALLOW_REMOTE_DATABASE:false}
+    # This service's public address: WiPay sends customers back to
+    # <public-base-url>/gateway/wipay/return. Server-generated, never admin input.
+    public-base-url: ${ISLEVENDOR_PAY_PUBLIC_URL:}
+    # The marketplace web app; customers land on <marketplace-web-url>/payment/<id>.
+    marketplace-web-url: ${PUBLIC_WEB_URL:}
+    # The Node backend on the private network, told when a payment succeeds or fails.
+    marketplace-internal-url: ${MARKETPLACE_INTERNAL_URL:}
+    marketplace-sync-interval-ms: 60000
     wipay:
       environment: ${WIPAY_ENV:sandbox}
       # Must stay false until WiPay confirms the live account in writing.
       live-authorized: ${ISLEVENDOR_PAY_WIPAY_LIVE_AUTHORIZED:false}
+      # Secrets. In the sandbox, WiPay's published test account is used when unset.
+      account-number: ${WIPAY_ACCOUNT_NUMBER:}
+      api-key: ${WIPAY_API_KEY:}
+      payments-webhook-secret: ${WIPAY_PAYMENTS_WEBHOOK_SECRET:}
+      origin: ${WIPAY_ORIGIN:IsleVendor}

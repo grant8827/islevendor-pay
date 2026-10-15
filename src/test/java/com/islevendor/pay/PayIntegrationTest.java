@@ -24,6 +24,8 @@ import org.springframework.test.web.servlet.MockMvc;
         "islevendor.pay.marketplace-jwt-secret=" + PayIntegrationTest.JWT_SECRET,
         "islevendor.pay.service-token=" + PayIntegrationTest.SERVICE_TOKEN,
         "WIPAY_API_KEY=configured-but-never-shown",
+        // Tests trigger the marketplace sync themselves.
+        "islevendor.pay.marketplace-sync-interval-ms=3600000",
 })
 @AutoConfigureMockMvc
 public abstract class PayIntegrationTest {

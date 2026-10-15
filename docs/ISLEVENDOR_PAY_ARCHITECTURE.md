@@ -57,7 +57,7 @@ The rule: **for any one checkout, exactly one service owns the payment.**
 | Phase | Node | Java | Switch |
 |---|---|---|---|
 | **1 (this change)** | Unchanged; owns all payments | Foundation: auth, schema, intents (recorded, never charged), gateway settings view, audit | `ISLEVENDOR_PAY_ENABLED=false` in production |
-| **2: payments** | New checkouts call Java when switched on; old checkouts finish in Node | WiPay hosted checkout in **sandbox**, return and webhook verification, reconciliation job, "order paid" callback to Node | Node `PAYMENTS_PROVIDER=node\|islevendor-pay`, read when the checkout starts |
+| **2: payments** (**built**) | New checkouts go to Java when `PAYMENTS_PROVIDER=islevendor-pay`. Node keeps its `checkout_payments` row as the marketplace's copy (`provider`, `pay_intent_id`) and credits orders when Java reports the outcome. | WiPay hosted checkout in **sandbox**; return-hash and webhook-signature verification; outcome sent to Node `POST /internal/pay/payments/:id/outcome`, retried every minute until acknowledged | Node `PAYMENTS_PROVIDER=node\|islevendor-pay`, read when the checkout starts |
 | **3: ledger** | Stops writing ledger rows | Escrow ledger, delivery release, commissions. One-time migration of `ledger_*`, `checkout_payments`, `payment_events` and `refunds` into `payments`, with a reconciliation report that must balance to the cent. | Cut over in a maintenance window |
 | **4: payouts** | Payouts tab calls Java | Manual payouts, then WAPI `sub_banked` behind `ENABLE_AUTOMATED_PAYOUTS` and live authorisation | Only after WiPay confirms in writing |
 | **5: retire** | Removes its payment code and tables (after an archive export) | Sole owner | — |
