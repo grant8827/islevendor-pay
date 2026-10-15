@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: islevendor-pay
+  datasource:
+    # The payments role only. In production this is a separate PostgreSQL role
+    # that owns the `payments` schema and can read three columns of
+    # public.users (see db/setup/001_payments_role.sql).
+    url: ${ISLEVENDOR_PAY_DATABASE_URL:jdbc:postgresql://localhost:5432/islevendor_pay_dev}
+    username: ${ISLEVENDOR_PAY_DATABASE_USERNAME:}
+    password: ${ISLEVENDOR_PAY_DATABASE_PASSWORD:}
+  flyway:
+    schemas: payments
+    default-schema: payments
+    create-schemas: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: payments
+
+server:
+  port: ${PORT:8081}
+  error:
+    include-message: never
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+
+islevendor:
+  pay:
+    # Master switch. Off: every payment endpoint answers 503 and nothing is
+    # recorded. Node's checkout keeps working either way.
+    enabled: ${ISLEVENDOR_PAY_ENABLED:false}
+    # The marketplace's login secret (Node's JWT_SECRET), so marketplace
+    # logins work here without separate accounts.
+    marketplace-jwt-secret: ${JWT_SECRET:}
+    # Shared secret for calls from the Node backend to /internal/**.
+    service-token: ${ISLEVENDOR_PAY_SERVICE_TOKEN:}
+    # Refuse a non-local database unless this is deliberately set.
+    allow-remote-database: ${ISLEVENDOR_PAY_ALLOW_REMOTE_DATABASE:false}
+    wipay:
+      environment: ${WIPAY_ENV:sandbox}
+      # Must stay false until WiPay confirms the live account in writing.
+      live-authorized: ${ISLEVENDOR_PAY_WIPAY_LIVE_AUTHORIZED:false}
