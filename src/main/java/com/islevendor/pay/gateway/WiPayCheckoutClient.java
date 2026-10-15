@@ -76,7 +76,8 @@ public class WiPayCheckoutClient {
         body.put("order_id", req.reference());
         body.put("origin", props.wipay().origin());
         body.put("response_url", responseUrl());
-        body.put("total", req.total().setScale(2));
+        // Text with exactly two decimals: WiPay rejects a JSON number like 1890 ("incorrect format").
+        body.put("total", req.total().setScale(2).toPlainString());
         body.put("email", req.email());
         body.put("name", req.name());
         if (req.phone() != null) {

@@ -202,7 +202,9 @@ class PaymentIntentEnabledTest extends PayIntegrationTest {
         assertThat(sent.path("environment").asString()).isEqualTo("sandbox");
         assertThat(sent.path("method").asString()).isEqualTo("credit_card_co");
         assertThat(sent.path("currency").asString()).isEqualTo("JMD");
-        assertThat(sent.path("total").decimalValue()).isEqualByComparingTo("2550.00");
+        // A string with two decimals: WiPay rejects a whole-number JSON total.
+        assertThat(sent.path("total").isString()).isTrue();
+        assertThat(sent.path("total").asString()).isEqualTo("2550.00");
         assertThat(sent.path("order_id").asString()).matches("[A-Z0-9]{1,16}");
         assertThat(sent.path("response_url").asString()).isEqualTo("http://localhost:8081/gateway/wipay/return");
         assertThat(sent.path("phone").asString()).isEqualTo("+18765550123");
